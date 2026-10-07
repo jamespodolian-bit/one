@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code-Based Art Tree</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+            color: #e0e0e0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #00ff88, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .tree {
+            position: relative;
+            margin-left: 0;
+        }
+
+        .node {
+            position: relative;
+            margin: 0;
+        }
+
+        .node-content {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: rgba(30, 50, 80, 0.6);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .node-content:hover {
+            background: rgba(30, 50, 80, 1);
+            border-color: rgba(0, 255, 136, 0.8);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            transform: translateX(4px);
+        }
+
+        .toggle-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            color: #00ff88;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .node-label {
+            flex: 1;
+        }
+
+        .node-label .title {
+            color: #00ff88;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .node-label .subtitle {
+            color: #b0b0b0;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .node.root > .node-content .node-label .title {
+            color: #00d4ff;
+            font-size: 1.2rem;
+        }
+
+        .node.genre > .node-content .node-label .title {
+            color: #ff00ff;
+        }
+
+        .node.subgenre > .node-content .node-label .title {
+            color: #ffaa00;
+            font-size: 0.95rem;
+        }
+
+        .children {
+            position: relative;
+            margin-left: 40px;
+            margin-top: 8px;
+        }
+
+        .children::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: -8px;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(180deg, rgba(0, 255, 136, 0.5) 0%, rgba(0, 212, 255, 0.5) 100%);
+        }
+
+        .children .node > .node-content::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            width: 20px;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(0, 255, 136, 0.5) 0%, rgba(0, 212, 255, 0.5) 100%);
+        }
+
+        .node-content.collapsed + .children {
+            display: none;
+        }
+
+        .node.leaf .toggle-icon {
+            visibility: hidden;
+        }
+
+        .node.leaf .node-content {
+            padding-left: 16px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 30px;
+            }
+
+            .children {
+                margin-left: 30px;
+            }
+
+            .children::before {
+                left: -15px;
+            }
+
+            .children .node > .node-content::before {
+                left: -15px;
+                width: 15px;
+            }
+
+            .node-content {
+                padding: 10px 12px;
+                font-size: 0.95rem;
+            }
+
+            .node.root > .node-content .node-label .title {
+                font-size: 1rem;
+            }
+
+            .node-label .subtitle {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+                margin-bottom: 25px;
+            }
+
+            .children {
+                margin-left: 25px;
+            }
+
+            .children::before {
+                left: -12px;
+            }
+
+            .children .node > .node-content::before {
+                left: -12px;
+                width: 12px;
+            }
+
+            .node-content {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+                gap: 6px;
+            }
+
+            .toggle-icon {
+                width: 18px;
+                height: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Code-Based Art</h1>
+        <div class="tree">
+            <div class="node root">
+                <div class="node-content expanded">
+                    <div class="toggle-icon">▼</div>
+                    <div class="node-label">
+                        <div class="title">Code-Based Art</div>
+                        <div class="subtitle">Art defined strictly by software logic, algorithms, and code execution</div>
+                    </div>
+                </div>
+                <div class="children">
+                    <!-- Genre 1: Algorithmic & Pure Math Art -->
+                    <div class="node genre">
+                        <div class="node-content expanded">
+                            <div class="toggle-icon">▼</div>
+                            <div class="node-label">
+                                <div class="title">Algorithmic & Pure Math Art</div>
+                                <div class="subtitle">Visual expressions derived from mathematical equations and computational sequences</div>
+                            </div>
+                        </div>
+                        <div class="children">
+                            <div class="node subgenre leaf">
+                                <div class="node-content">
+                                    <div class="toggle-icon">▼</div>
+                                    <div class="node-label">
+                                        <div class="title">Fractal Art</div>
+                                        <div class="subtitle">Visuals characterized by infinite self-similarity derived from mathematical formulas like the Mandelbrot set</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="node subgenre leaf">
+                                <div class="node-content">
+                                    <div class="toggle-icon">▼</div>
+                                    <div class="node-label">
+                                        <div class="title">Vector-Based Art</div>
+                                        <div class="subtitle">Mathematical formulas generating lines, points, and curves that scale infinitely without pixelation</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Genre 2: Simulation & Autonomous Systems -->
+                    <div class="node genre">
+                        <div class="node-content expanded">
+                            <div class="toggle-icon">▼</div>
+                            <div class="node-label">
+                                <div class="title">Simulation & Autonomous Systems</div>
+                                <div class="subtitle">Systems that evolve and generate patterns through rule-based interactions over time</div>
+                            </div>
+                        </div>
+                        <div class="children">
+                            <div class="node subgenre leaf">
+                                <div class="node-content">
+                                    <div class="toggle-icon">▼</div>
+                                    <div class="node-label">
+                                        <div class="title">Cellular Automata</div>
+                                        <div class="subtitle">Grid-based systems where cells evolve based on the state of their neighbors, like Conway's Game of Life</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="node subgenre leaf">
+                                <div class="node-content">
+                                    <div class="toggle-icon">▼</div>
+                                    <div class="node-label">
+                                        <div class="title">Agent-Based / Swarm Art</div>
+                                        <div class="subtitle">Systems where independent "agents" move and interact based on rules like flocking and steering behaviors</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Genre 3: Visual Manipulation & Rendering -->
+                    <div class="node genre">
+                        <div class="node-content expanded">
+                            <div class="toggle-icon">▼</div>
+                            <div class="node-label">
+                                <div class="title">Visual Manipulation & Rendering</div>
+                                <div class="subtitle">Direct manipulation of pixels, rendering pipelines, and digital data for aesthetic effect</div>
+                            </div>
+                        </div>
+                        <div class="children">
+                            <div class="node subgenre leaf">
+                                <div class="node-content">
+                                    <div class="toggle-icon">▼</div>
+                                    <div class="node-label">
+                                        <div class="title">Pixel / Grid-Based Art</div>
+                                        <div class="subtitle">Algorithms that manipulate individual pixel matrices to form structured, retro, or mosaic-like visuals</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="node subgenre leaf">
+                                <div class="node-content">
+                                    <div class="toggle-icon">▼</div>
+                                    <div class="node-label">
+                                        <div class="title">Shader Art</div>
+                                        <div class="subtitle">Highly optimized, math-heavy GLSL/HLSL code executed directly on the GPU for real-time fluid animations</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="node subgenre leaf">
+                                <div class="node-content">
+                                    <div class="toggle-icon">▼</div>
+                                    <div class="node-label">
+                                        <div class="title">Glitch Art</div>
+                                        <div class="subtitle">The intentional corruption of digital data, file code, or rendering logic to introduce aesthetic digital artifacts</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.node-content').forEach(nodeContent => {
+            nodeContent.addEventListener('click', function(e) {
+                e.stopPropagation();
+
+                const nextSibling = this.nextElementSibling;
+                if (!nextSibling || !nextSibling.classList.contains('children')) {
+                    return;
+                }
+
+                const toggleIcon = this.querySelector('.toggle-icon');
+                const isExpanded = this.classList.contains('expanded');
+
+                if (isExpanded) {
+                    this.classList.remove('expanded');
+                    this.classList.add('collapsed');
+                    toggleIcon.classList.add('collapsed');
+                    nextSibling.style.maxHeight = '0';
+                    nextSibling.style.opacity = '0';
+                } else {
+                    this.classList.remove('collapsed');
+                    this.classList.add('expanded');
+                    toggleIcon.classList.remove('collapsed');
+                    nextSibling.style.maxHeight = '10000px';
+                    nextSibling.style.opacity = '1';
+                }
+            });
+        });
+
+        // Initialize children visibility
+        document.querySelectorAll('.children').forEach(children => {
+            children.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
+            children.style.maxHeight = '10000px';
+            children.style.opacity = '1';
+            children.style.overflow = 'hidden';
+        });
+    </script>
+</body>
+</html>
