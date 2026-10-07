@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Art Genres Tree</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .tree-section, .preview-section {
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        .tree-section h2, .preview-section h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+            font-size: 1.5em;
+        }
+
+        .tree-item {
+            margin-left: 20px;
+            margin-bottom: 8px;
+        }
+
+        .tree-item.root {
+            margin-left: 0;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9ff;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tree-item.root:hover {
+            background: #e8eaff;
+        }
+
+        .toggle-btn {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            color: white;
+            text-align: center;
+            line-height: 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-right: 8px;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+
+        .toggle-btn.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .children {
+            display: block;
+        }
+
+        .children.hidden {
+            display: none;
+        }
+
+        .sub-genre {
+            margin-left: 30px;
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            color: #555;
+        }
+
+        .sub-genre:hover {
+            background: #f0f1ff;
+            color: #667eea;
+        }
+
+        .preview-item {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .preview-item h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .preview-item p {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .canvas-preview {
+            width: 100%;
+            height: 200px;
+            background: #f0f1ff;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .code-snippet {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .tree-section, .preview-section {
+                max-height: none;
+            }
+        }
+
+        .info-text {
+            font-size: 0.9em;
+            color: #999;
+            font-style: italic;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Code Art Genres</h1>
+            <p>Interactive tree of visual programming art forms</p>
+        </header>
+
+        <div class="content">
+            <div class="tree-section">
+                <h2>Genre Tree</h2>
+                <div id="tree"></div>
+            </div>
+
+            <div class="preview-section">
+                <h2>Preview & Examples</h2>
+                <div id="preview">
+                    <div class="preview-item">
+                        <p class="info-text">← Select a genre to view details and examples</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const genreData = {
+            name: "Code Art",
+            children: [
+                {
+                    name: "Computational/Algorithmic",
+                    children: [
+                        { name: "Generative Art", desc: "Algorithm-driven unique outputs", type: "generative" },
+                        { name: "Fractals", desc: "Self-similar recursive patterns (Mandelbrot, Julia)", type: "fractal" },
+                        { name: "Cellular Automata", desc: "Rule-based evolving systems (Game of Life)", type: "automata" },
+                        { name: "Particle Systems", desc: "Swarm, flocking, and emergence behavior", type: "particles" },
+                        { name: "L-systems", desc: "Plant-like branching structures", type: "lsystem" }
+                    ]
+                },
+                {
+                    name: "Real-time & Interactive",
+                    children: [
+                        { name: "Shader Art", desc: "GPU fragment/vertex shaders", type: "shader" },
+                        { name: "WebGL/Canvas", desc: "Browser-based 3D visualization", type: "webgl" },
+                        { name: "Processing", desc: "Creative coding with Java", type: "processing" },
+                        { name: "p5.js", desc: "JavaScript creative coding", type: "p5js" }
+                    ]
+                },
+                {
+                    name: "Text-Based",
+                    children: [
+                        { name: "ASCII Art", desc: "Monospace character-based images", type: "ascii" },
+                        { name: "Unicode Art", desc: "Extended character sets", type: "unicode" },
+                        { name: "Code Poetry", desc: "Source code as visual art", type: "codepoetry" }
+                    ]
+                },
+                {
+                    name: "Demoscene",
+                    children: [
+                        { name: "Intros", desc: "64KB or 4KB compressed visuals", type: "intro" },
+                        { name: "Pixel Art", desc: "8/16-bit retro aesthetics", type: "pixelart" },
+                        { name: "Dithering", desc: "Limited palette patterns", type: "dither" }
+                    ]
+                },
+                {
+                    name: "Hybrid Media",
+                    children: [
+                        { name: "Glitch Art", desc: "Digital errors and corruptions", type: "glitch" },
+                        { name: "Neural Networks", desc: "AI-generated visuals (GANs, diffusion)", type: "neural" },
+                        { name: "Data Sonification", desc: "Audio-reactive visualizations", type: "sonif" }
+                    ]
+                },
+                {
+                    name: "Abstract & Math",
+                    children: [
+                        { name: "Geometry Art", desc: "Circles, polygons, tessellations", type: "geometry" },
+                        { name: "Wave Patterns", desc: "Interference and moiré effects", type: "waves" },
+                        { name: "3D Mesh", desc: "Procedural terrain and voxels", type: "mesh3d" },
+                        { name: "Chaotic Systems", desc: "Attractor visualization", type: "chaos" }
+                    ]
+                },
+                {
+                    name: "Kinetic & Motion",
+                    children: [
+                        { name: "Motion Graphics", desc: "Animated typography", type: "motion" },
+                        { name: "Physics Simulation", desc: "Gravity, collision, bouncing", type: "physics" },
+                        { name: "Morphing Shapes", desc: "Smooth shape transformations", type: "morph" }
+                    ]
+                },
+                {
+                    name: "Experimental",
+                    children: [
+                        { name: "CSS Art", desc: "Pure CSS animations and shapes", type: "css" },
+                        { name: "SVG Generative", desc: "Dynamic vector graphics", type: "svg" },
+                        { name: "Raytracing", desc: "Photorealistic rendering", type: "raytracing" }
+                    ]
+                }
+            ]
+        };
+
+        const previews = {
+            generative: {
+                title: "Generative Art",
+                desc: "Each execution creates a unique artwork from algorithms and randomness.",
+                example: "randomCircles"
+            },
+            fractal: {
+                title: "Fractals",
+                desc: "Self-similar patterns repeating at different scales (Mandelbrot, Julia sets).",
+                example: "fractal"
+            },
+            automata: {
+                title: "Cellular Automata",
+                desc: "Simple rules create complex emergent behavior over generations.",
+                example: "automata"
+            },
+            particles: {
+                title: "Particle Systems",
+                desc: "Individual particles following rules create swarm-like behaviors.",
+                example: "particles"
+            },
+            lsystem: {
+                title: "L-systems",
+                desc: "Recursive string rewriting produces plant-like botanical patterns.",
+                example: "ascii_tree"
+            },
+            shader: {
+                title: "Shader Art",
+                desc: "Real-time GPU computation for complex mathematical visualizations.",
+                example: "ascii_pattern"
+            },
+            webgl: {
+                title: "WebGL/Canvas Art",
+                desc: "3D graphics rendered in the browser with WebGL.",
+                example: "cube"
+            },
+            p5js: {
+                title: "p5.js Art",
+                desc: "Creative coding with JavaScript for interactive visuals.",
+                example: "spiral"
+            },
+            ascii: {
+                title: "ASCII Art",
+                desc: "Text-based images created with monospace characters.",
+                example: "ascii_wave"
+            },
+            unicode: {
+                title: "Unicode Art",
+                desc: "Extended Unicode characters for richer visual expression.",
+                example: "unicode_pattern"
+            },
+            codepoetry: {
+                title: "Code Poetry",
+                desc: "Source code itself becomes visual art through arrangement.",
+                example: "code_poem"
+            },
+            intro: {
+                title: "Demo Intros",
+                desc: "Compressed audiovisual performances in tiny file sizes.",
+                example: "retro"
+            },
+            pixelart: {
+                title: "Pixel Art",
+                desc: "Retro 8/16-bit aesthetic with limited palettes.",
+                example: "pixelated"
+            },
+            dither: {
+                title: "Dithering",
+                desc: "Limited palettes approximated through dot patterns.",
+                example: "dither"
+            },
+            glitch: {
+                title: "Glitch Art",
+                desc: "Deliberate digital corruption and errors as aesthetic.",
+                example: "glitch"
+            },
+            neural: {
+                title: "Neural Networks",
+                desc: "AI-generated imagery using GANs and diffusion models.",
+                example: "neural_wave"
+            },
+            sonif: {
+                title: "Data Sonification",
+                desc: "Visual representations reactive to audio and frequencies.",
+                example: "waveform"
+            },
+            geometry: {
+                title: "Geometry Art",
+                desc: "Circle packing, Voronoi diagrams, tessellations.",
+                example: "circles"
+            },
+            waves: {
+                title: "Wave Patterns",
+                desc: "Interference patterns, moiré effects, standing waves.",
+                example: "waves"
+            },
+            mesh3d: {
+                title: "3D Mesh",
+                desc: "Procedurally generated terrain, voxels, and meshes.",
+                example: "grid"
+            },
+            chaos: {
+                title: "Chaotic Systems",
+                desc: "Attractors and bifurcation diagrams.",
+                example: "chaos"
+            },
+            motion: {
+                title: "Motion Graphics",
+                desc: "Animated typography and kinetic text.",
+                example: "motion_text"
+            },
+            physics: {
+                title: "Physics Simulation",
+                desc: "Gravity, collisions, orbital mechanics.",
+                example: "physics"
+            },
+            morph: {
+                title: "Morphing Shapes",
+                desc: "Smooth transformations between geometric forms.",
+                example: "morph"
+            },
+            css: {
+                title: "CSS Art",
+                desc: "Pure CSS animations and drawings.",
+                example: "css_pattern"
+            },
+            svg: {
+                title: "SVG Generative",
+                desc: "Dynamically generated vector graphics.",
+                example: "svg_lines"
+            },
+            raytracing: {
+                title: "Raytracing",
+                desc: "Photorealistic rendering with light simulation.",
+                example: "ascii_sphere"
+            }
+        };
+
+        function renderTree(node, container, isRoot = false) {
+            if (isRoot) {
+                const rootDiv = document.createElement('div');
+                rootDiv.className = 'tree-item root';
+                rootDiv.textContent = node.name;
+                container.appendChild(rootDiv);
+            }
+
+            const childrenDiv = document.createElement('div');
+            childrenDiv.className = 'children';
+
+            node.children.forEach(child => {
+                if (child.children) {
+                    const parentDiv = document.createElement('div');
+                    parentDiv.className = 'tree-item';
+
+                    const toggle = document.createElement('span');
+                    toggle.className = 'toggle-btn';
+                    toggle.textContent = '▼';
+
+                    const label = document.createElement('span');
+                    label.textContent = child.name;
+                    label.style.cursor = 'pointer';
+                    label.style.fontWeight = 'bold';
+
+                    const subChildrenDiv = document.createElement('div');
+                    subChildrenDiv.className = 'children';
+
+                    toggle.addEventListener('click', () => {
+                        subChildrenDiv.classList.toggle('hidden');
+                        toggle.classList.toggle('collapsed');
+                    });
+
+                    label.addEventListener('click', () => {
+                        subChildrenDiv.classList.toggle('hidden');
+                        toggle.classList.toggle('collapsed');
+                    });
+
+                    parentDiv.appendChild(toggle);
+                    parentDiv.appendChild(label);
+
+                    child.children.forEach(subchild => {
+                        const subDiv = document.createElement('div');
+                        subDiv.className = 'sub-genre';
+                        subDiv.textContent = subchild.name;
+                        subDiv.addEventListener('click', () => showPreview(subchild));
+                        subChildrenDiv.appendChild(subDiv);
+                    });
+
+                    parentDiv.appendChild(subChildrenDiv);
+                    childrenDiv.appendChild(parentDiv);
+                } else {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'sub-genre';
+                    itemDiv.textContent = child.name;
+                    itemDiv.addEventListener('click', () => showPreview(child));
+                    childrenDiv.appendChild(itemDiv);
+                }
+            });
+
+            container.appendChild(childrenDiv);
+        }
+
+        function showPreview(item) {
+            const preview = previews[item.type];
+            const previewDiv = document.getElementById('preview');
+            previewDiv.innerHTML = '';
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'preview-item';
+
+            const title = document.createElement('h3');
+            title.textContent = preview.title;
+
+            const desc = document.createElement('p');
+            desc.textContent = preview.desc;
+
+            itemDiv.appendChild(title);
+            itemDiv.appendChild(desc);
+
+            const canvas = document.createElement('canvas');
+            canvas.className = 'canvas-preview';
+            itemDiv.appendChild(canvas);
+
+            previewDiv.appendChild(itemDiv);
+
+            renderExample(canvas, preview.example);
+        }
+
+        function renderExample(canvas, type) {
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = '#f0f1ff';
+            ctx.fillRect(0, 0, w, h);
+
+            switch(type) {
+                case 'randomCircles':
+                    for(let i = 0; i < 50; i++) {
+                        ctx.fillStyle = `hsl(${Math.random()*360}, 70%, 50%)`;
+                        const x = Math.random() * w;
+                        const y = Math.random() * h;
+                        const r = Math.random() * 30 + 5;
+                        ctx.beginPath();
+                        ctx.arc(x, y, r, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'fractal':
+                    drawFractalTree(ctx, w/2, h, -Math.PI/2, 100, 8);
+                    break;
+
+                case 'automata':
+                    drawGameOfLife(ctx, w, h);
+                    break;
+
+                case 'particles':
+                    drawParticles(ctx, w, h);
+                    break;
+
+                case 'ascii_tree':
+                    ctx.fillStyle = '#2d2d2d';
+                    ctx.font = '10px monospace';
+                    ctx.fillText('      *', 40, 20);
+                    ctx.fillText('     /|\\', 35, 35);
+                    ctx.fillText('    /*|*\\', 30, 50);
+                    ctx.fillText('   /|*|*|\\', 25, 65);
+                    break;
+
+                case 'ascii_pattern':
+                    drawAsciiPattern(ctx, w, h);
+                    break;
+
+                case 'cube':
+                    draw3DCube(ctx, w/2, h/2);
+                    break;
+
+                case 'spiral':
+                    drawSpiral(ctx, w/2, h/2);
+                    break;
+
+                case 'ascii_wave':
+                    ctx.fillStyle = '#2d2d2d';
+                    ctx.font = '14px monospace';
+                    for(let i = 0; i < 10; i++) {
+                        const y = 20 + i * 15;
+                        const wave = Math.sin(i * 0.5) * 10;
+                        ctx.fillText('~ ~ ~ ~ ~ ~ ~', 20 + wave, y);
+                    }
+                    break;
+
+                case 'unicode_pattern':
+                    drawUnicodePattern(ctx, w, h);
+                    break;
+
+                case 'code_poem':
+                    ctx.fillStyle = '#2d2d2d';
+                    ctx.font = '11px monospace';
+                    ctx.fillText('class Art {', 20, 30);
+                    ctx.fillText('  beauty = true;', 30, 50);
+                    ctx.fillText('  code(); // art', 30, 70);
+                    ctx.fillText('}', 20, 90);
+                    break;
+
+                case 'retro':
+                    drawRetroPixels(ctx, w, h);
+                    break;
+
+                case 'pixelated':
+                    drawPixelArt(ctx, w, h);
+                    break;
+
+                case 'dither':
+                    drawDither(ctx, w, h);
+                    break;
+
+                case 'glitch':
+                    drawGlitch(ctx, w, h);
+                    break;
+
+                case 'neural_wave':
+                    drawNeuralWave(ctx, w, h);
+                    break;
+
+                case 'waveform':
+                    drawWaveform(ctx, w, h);
+                    break;
+
+                case 'circles':
+                    drawCirclePacking(ctx, w, h);
+                    break;
+
+                case 'waves':
+                    drawInterference(ctx, w, h);
+                    break;
+
+                case 'grid':
+                    drawGrid(ctx, w, h);
+                    break;
+
+                case 'chaos':
+                    drawChaos(ctx, w, h);
+                    break;
+
+                case 'motion_text':
+                    ctx.fillStyle = '#667eea';
+                    ctx.font = 'bold 24px Arial';
+                    ctx.fillText('Motion', 30, 80);
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillText('Motion', 35, 85);
+                    ctx.globalAlpha = 0.2;
+                    ctx.fillText('Motion', 40, 90);
+                    break;
+
+                case 'physics':
+                    drawPhysics(ctx, w, h);
+                    break;
+
+                case 'morph':
+                    drawMorph(ctx, w, h);
+                    break;
+
+                case 'css_pattern':
+                    drawCSSPattern(ctx, w, h);
+                    break;
+
+                case 'svg_lines':
+                    drawSVGLines(ctx, w, h);
+                    break;
+
+                case 'ascii_sphere':
+                    drawAsciiSphere(ctx, w, h);
+                    break;
+            }
+        }
+
+        // Drawing functions for examples
+        function drawFractalTree(ctx, x, y, angle, length, depth) {
+            if(depth === 0 || length < 2) return;
+
+            const nextX = x + Math.cos(angle) * length;
+            const nextY = y + Math.sin(angle) * length;
+
+            ctx.strokeStyle = `hsl(100, 70%, ${50 + depth * 5}%)`;
+            ctx.lineWidth = depth / 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(nextX, nextY);
+            ctx.stroke();
+
+            drawFractalTree(ctx, nextX, nextY, angle - 0.5, length * 0.7, depth - 1);
+            drawFractalTree(ctx, nextX, nextY, angle + 0.5, length * 0.7, depth - 1);
+        }
+
+        function drawGameOfLife(ctx, w, h) {
+            const grid = 10;
+            for(let i = 0; i < w; i += grid) {
+                for(let j = 0; j < h; j += grid) {
+                    ctx.fillStyle = Math.random() > 0.7 ? '#667eea' : '#f0f1ff';
+                    ctx.fillRect(i, j, grid, grid);
+                    ctx.strokeStyle = '#ddd';
+                    ctx.strokeRect(i, j, grid, grid);
+                }
+            }
+        }
+
+        function drawParticles(ctx, w, h) {
+            const cx = w / 2, cy = h / 2;
+            for(let i = 0; i < 100; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 80;
+                const x = cx + Math.cos(angle) * distance;
+                const y = cy + Math.sin(angle) * distance;
+                ctx.fillStyle = `hsla(${Math.random()*360}, 70%, 50%, 0.6)`;
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawAsciiPattern(ctx, w, h) {
+            ctx.fillStyle = '#667eea';
+            ctx.font = '16px monospace';
+            for(let i = 0; i < h; i += 20) {
+                ctx.fillText('▓▓▓▓▓▓▓▓▓▓', 20, i + 20);
+            }
+        }
+
+        function draw3DCube(ctx, cx, cy) {
+            const size = 40;
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cx - size, cy - size, size * 2, size * 2);
+            ctx.strokeRect(cx - size + 20, cy - size - 20, size * 2, size * 2);
+            ctx.beginPath();
+            ctx.moveTo(cx - size, cy - size);
+            ctx.lineTo(cx - size + 20, cy - size - 20);
+            ctx.stroke();
+        }
+
+        function drawSpiral(ctx, cx, cy) {
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for(let i = 0; i < Math.PI * 8; i += 0.1) {
+                const x = cx + i * Math.cos(i) * 5;
+                const y = cy + i * Math.sin(i) * 5;
+                if(i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        function drawUnicodePattern(ctx, w, h) {
+            ctx.fillStyle = '#667eea';
+            ctx.font = '24px Arial';
+            const chars = ['◆', '●', '■', '▲'];
+            for(let i = 0; i < 20; i++) {
+                const x = Math.random() * w;
+                const y = Math.random() * h;
+                ctx.fillText(chars[Math.floor(Math.random() * 4)], x, y);
+            }
+        }
+
+        function drawRetroPixels(ctx, w, h) {
+            const colors = ['#FF006E', '#FB5607', '#FFBE0B', '#8338EC'];
+            for(let i = 0; i < w; i += 20) {
+                for(let j = 0; j < h; j += 20) {
+                    ctx.fillStyle = colors[Math.floor(Math.random() * 4)];
+                    ctx.fillRect(i, j, 15, 15);
+                }
+            }
+        }
+
+        function drawPixelArt(ctx, w, h) {
+            const size = 8;
+            const pattern = [
+                [0,1,1,0],
+                [1,1,1,1],
+                [1,1,1,1],
+                [0,1,1,0]
+            ];
+            for(let i = 0; i < pattern.length; i++) {
+                for(let j = 0; j < pattern[i].length; j++) {
+                    if(pattern[i][j]) {
+                        ctx.fillStyle = '#FF006E';
+                        ctx.fillRect(w/2 - size*2 + j*size, h/2 - size*2 + i*size, size, size);
+                    }
+                }
+            }
+        }
+
+        function drawDither(ctx, w, h) {
+            for(let i = 0; i < w; i += 4) {
+                for(let j = 0; j < h; j += 4) {
+                    if((i + j) % 8 === 0) {
+                        ctx.fillStyle = '#667eea';
+                        ctx.fillRect(i, j, 2, 2);
+                    }
+                }
+            }
+        }
+
+        function drawGlitch(ctx, w, h) {
+            ctx.fillStyle = '#667eea';
+            for(let i = 0; i < 5; i++) {
+                const y = Math.random() * h;
+                const height = Math.random() * 20 + 5;
+                ctx.fillRect(0, y, w, height);
+            }
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#FF006E';
+            for(let i = 0; i < 5; i++) {
+                const y = Math.random() * h;
+                const height = Math.random() * 15 + 5;
+                ctx.fillRect(0, y, w, height);
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function drawNeuralWave(ctx, w, h) {
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for(let x = 0; x < w; x++) {
+                const noise = Math.sin(x * 0.02) * Math.cos(x * 0.01);
+                const y = h/2 + noise * 50;
+                if(x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        function drawWaveform(ctx, w, h) {
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for(let x = 0; x < w; x++) {
+                const y = h/2 + Math.sin(x * 0.05) * (h/4);
+                if(x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        function drawCirclePacking(ctx, w, h) {
+            const circles = [];
+            for(let i = 0; i < 20; i++) {
+                circles.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.random() * 20 + 5
+                });
+            }
+            circles.forEach(c => {
+                ctx.strokeStyle = '#667eea';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+        }
+
+        function drawInterference(ctx, w, h) {
+            for(let x = 0; x < w; x += 5) {
+                ctx.strokeStyle = `rgba(102, 126, 234, ${0.5})`;
+                ctx.beginPath();
+                const y = h/2 + Math.sin(x * 0.02) * 30;
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, h);
+                ctx.stroke();
+            }
+        }
+
+        function drawGrid(ctx, w, h) {
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            for(let i = 0; i < w; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, h);
+                ctx.stroke();
+            }
+            for(let i = 0; i < h; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(w, i);
+                ctx.stroke();
+            }
+        }
+
+        function drawChaos(ctx, w, h) {
+            const cx = w / 2, cy = h / 2;
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 1;
+            let x = 0.1, y = 0.1;
+            for(let i = 0; i < 1000; i++) {
+                const nx = Math.sin(y * 0.5) + 1.4 * x * (1 - x * x);
+                const ny = 0.3 * x;
+                x = nx;
+                y = ny;
+                ctx.fillRect(cx + x * 50, cy + y * 50, 1, 1);
+            }
+        }
+
+        function drawPhysics(ctx, w, h) {
+            for(let i = 0; i < 5; i++) {
+                ctx.fillStyle = `hsla(${i * 60}, 70%, 50%, 0.6)`;
+                ctx.beginPath();
+                ctx.arc(w/2 + (i-2)*40, h/2 + i*15, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawMorph(ctx, w, h) {
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            const t = 0.5;
+            ctx.beginPath();
+            for(let i = 0; i < Math.PI * 2; i += 0.1) {
+                const r = 30 * (1 + 0.5 * Math.sin(i * 2)) * (1 - t * 0.5);
+                const x = w/2 + Math.cos(i) * r;
+                const y = h/2 + Math.sin(i) * r;
+                if(i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        function drawCSSPattern(ctx, w, h) {
+            for(let i = 0; i < 5; i++) {
+                ctx.strokeStyle = '#667eea';
+                ctx.lineWidth = 2;
+                const s = 30 + i * 20;
+                ctx.strokeRect(w/2 - s/2, h/2 - s/2, s, s);
+            }
+        }
+
+        function drawSVGLines(ctx, w, h) {
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 1;
+            for(let i = 0; i < 20; i++) {
+                const startX = Math.random() * w;
+                const startY = Math.random() * h;
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(startX + Math.random() * 80 - 40, startY + Math.random() * 80 - 40);
+                ctx.stroke();
+            }
+        }
+
+        function drawAsciiSphere(ctx, w, h) {
+            ctx.fillStyle = '#2d2d2d';
+            ctx.font = '12px monospace';
+            const sphere = ['  .===.  ', ' /|o o|\\', '| \\   / |', ' \\  _  / ', '  `===\'  '];
+            sphere.forEach((line, i) => {
+                ctx.fillText(line, w/2 - 40, h/2 - 30 + i * 15);
+            });
+        }
+
+        // Initialize
+        const treeContainer = document.getElementById('tree');
+        renderTree(genreData, treeContainer, true);
+    </script>
+</body>
+</html>
