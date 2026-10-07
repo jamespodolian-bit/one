@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THC Cessation Timer</title>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            color: #1a1a1a;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+        h2 {
+            border-bottom: 2px solid #6b4c9a;
+            padding-bottom: 8px;
+        }
+        input, button {
+            font-family: monospace;
+            font-size: 1rem;
+            padding: 8px 12px;
+            margin-right: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #6b4c9a;
+            background: #fff;
+            color: #1a1a1a;
+            border-radius: 4px;
+        }
+        button {
+            background: #6b4c9a;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #4a3060;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        #result {
+            margin-top: 24px;
+            white-space: pre-line;
+            background: #fff;
+            padding: 16px;
+            border-left: 4px solid #6b4c9a;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            min-height: 80px;
+        }
+        .info {
+            margin-top: 32px;
+            padding: 12px;
+            background: #f3e5f5;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #6b4c9a;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>THC Cessation Timer</h2>
+
+    <div>
+        <label for="datetimeInput">Select past date & time:</label><br>
+        <input type="datetime-local" id="datetimeInput">
+        <button id="startBtn">Start</button>
+        <button id="nowBtn">Now</button>
+    </div>
+
+    <div id="result"></div>
+
+    <div class="info">
+        Clarity returns with time. Your mind is clearing, your choices are your own. Each day sober is progress.
+    </div>
+
+    <script>
+        let intervalId = null;
+        const STORAGE_KEY = 'thcCessationTargetDate';
+        const RUNNING_KEY = 'thcCessationRunning';
+
+        // Load saved state on page load
+        function loadSavedState() {
+            const savedDate = localStorage.getItem(STORAGE_KEY);
+            const wasRunning = localStorage.getItem(RUNNING_KEY) === 'true';
+
+            if (savedDate) {
+                document.getElementById('datetimeInput').value = savedDate;
+                refreshDisplay();
+                if (wasRunning) {
+                    // Auto-restart the live update
+                    const targetDate = new Date(savedDate);
+                    if (!isNaN(targetDate.getTime())) {
+                        stopInterval();
+                        intervalId = setInterval(() => {
+                            document.getElementById('result').innerText = calculateTimeLapsed(targetDate);
+                        }, 1000);
+                    }
+                }
+            }
+        }
+
+        // Helper: convert a Date object to a string suitable for datetime-local input (local time)
+        function toDateTimeLocalString(date) {
+            const pad = (num) => String(num).padStart(2, '0');
+            const year = date.getFullYear();
+            const month = pad(date.getMonth() + 1);  // months are 0-indexed
+            const day = pad(date.getDate());
+            const hours = pad(date.getHours());
+            const minutes = pad(date.getMinutes());
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function calculateTimeLapsed(targetDate) {
+            const now = new Date();
+            let diff = now - targetDate;
+
+            if (diff < 0) {
+                return "The selected time is in the future.";
+            }
+
+            // Calculations for breakdown
+            const seconds = Math.floor(diff / 1000) % 60;
+            const minutes = Math.floor(diff / (1000 * 60)) % 60;
+            const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
+
+            // Approximate breakdown for days (total days, not mixed months/years)
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+            return `Time since cessation:
+${days} days
+${hours} hours
+${minutes} minutes
+${seconds} seconds`;
+        }
+
+        // Function to stop any running interval
+        function stopInterval() {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        }
+
+        // Refresh the display based on current input value
+        function refreshDisplay() {
+            const inputVal = document.getElementById('datetimeInput').value;
+            if (!inputVal) {
+                document.getElementById('result').innerText = "Please select a valid date and time.";
+                return;
+            }
+
+            const targetDate = new Date(inputVal);
+            if (isNaN(targetDate.getTime())) {
+                document.getElementById('result').innerText = "Invalid date. Please check your input.";
+                return;
+            }
+
+            // Update immediately
+            document.getElementById('result').innerText = calculateTimeLapsed(targetDate);
+        }
+
+        // Start button: begin live updating every second
+        document.getElementById('startBtn').addEventListener('click', () => {
+            const inputVal = document.getElementById('datetimeInput').value;
+            if (!inputVal) {
+                document.getElementById('result').innerText = "Please select a valid date and time.";
+                stopInterval();
+                localStorage.setItem(RUNNING_KEY, 'false');
+                return;
+            }
+
+            const targetDate = new Date(inputVal);
+            if (isNaN(targetDate.getTime())) {
+                document.getElementById('result').innerText = "Invalid date. Please check your input.";
+                stopInterval();
+                localStorage.setItem(RUNNING_KEY, 'false');
+                return;
+            }
+
+            // Save state
+            localStorage.setItem(STORAGE_KEY, inputVal);
+            localStorage.setItem(RUNNING_KEY, 'true');
+
+            // Stop any previous interval
+            stopInterval();
+
+            // Show immediate result
+            document.getElementById('result').innerText = calculateTimeLapsed(targetDate);
+
+            // Update every second
+            intervalId = setInterval(() => {
+                document.getElementById('result').innerText = calculateTimeLapsed(targetDate);
+            }, 1000);
+        });
+
+        // Now button: set the datetime-local input to current local time and refresh display
+        document.getElementById('nowBtn').addEventListener('click', () => {
+            const now = new Date();
+            // Set the input to current date and time (YYYY-MM-DDTHH:MM)
+            const nowString = toDateTimeLocalString(now);
+            document.getElementById('datetimeInput').value = nowString;
+
+            // Save state
+            localStorage.setItem(STORAGE_KEY, nowString);
+            localStorage.setItem(RUNNING_KEY, 'true');
+
+            // Re-fetch the target date from input (which is now set to ~now)
+            const inputVal = document.getElementById('datetimeInput').value;
+            if (!inputVal) return;
+            const targetDate = new Date(inputVal);
+            if (isNaN(targetDate.getTime())) return;
+
+            // Stop any interval and start fresh
+            stopInterval();
+            // Show immediate result
+            document.getElementById('result').innerText = calculateTimeLapsed(targetDate);
+            // Start updating every second
+            intervalId = setInterval(() => {
+                document.getElementById('result').innerText = calculateTimeLapsed(targetDate);
+            }, 1000);
+        });
+
+        // Also stop interval if the page is unloaded (good practice, but not required)
+        window.addEventListener('beforeunload', () => {
+            stopInterval();
+        });
+
+        // Load saved state on page load
+        loadSavedState();
+    </script>
+
+</body>
+</html>
