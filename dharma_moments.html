@@ -322,13 +322,9 @@
     <fieldset>
       <legend>tradition</legend>
       <div class="row">
-        <select id="tradition" aria-label="Buddhist tradition">
-          <option value="prajnaparamita-60">Prajnaparamita Sastra (60/snap)</option>
-          <option value="vibhasika-64">Vibhasika (64/snap)</option>
-          <option value="theravada-60">Theravada Abhidharma (60/sec)</option>
-          <option value="sautrantika-2">Sautrantika (2/moment)</option>
-          <option value="yogacara-800">Yogacara (800/sec)</option>
-          <option value="original-1b">Original (1 billion/sec)</option>
+        <select id="tradition" aria-label="Mahayana tradition">
+          <option value="madhyamaka-800">Madhyamaka (Prajnaparamita Sastra)</option>
+          <option value="yogacara-800">Yogacara</option>
         </select>
       </div>
     </fieldset>
@@ -361,21 +357,13 @@
   'use strict';
 
   /* ------------------------------------------------------------------
-     Different traditions estimate dharma-kshanika duration differently:
-     - Prajnaparamita: 60 moments per finger-snap (~75ms) = ~800/sec
-     - Vibhasika: 64 moments per finger-snap = ~853/sec
-     - Theravada: 60 moments per second
-     - Sautrantika: 2 sub-moments per moment
-     - Yogacara: ~800 moments per second
-     - Original estimate: 1 billion per second
+     Mahayana traditions estimate dharma-kshanika duration:
+     - Madhyamaka (Prajnaparamita Sastra): 60 moments per finger-snap (~800/sec)
+     - Yogacara: ~800 moments per second (consciousness-only framework)
      ------------------------------------------------------------------ */
   var TRADITIONS = {
-    'prajnaparamita-60': { label: 'Prajnaparamita Sastra', moments_per_sec: 800 },
-    'vibhasika-64': { label: 'Vibhasika', moments_per_sec: 853 },
-    'theravada-60': { label: 'Theravada Abhidharma', moments_per_sec: 60 },
-    'sautrantika-2': { label: 'Sautrantika', moments_per_sec: 2 },
-    'yogacara-800': { label: 'Yogacara', moments_per_sec: 800 },
-    'original-1b': { label: 'Commentarial Expansion', moments_per_sec: 1e9 }
+    'madhyamaka-800': { label: 'Madhyamaka (Prajnaparamita Sastra)', moments_per_sec: 800 },
+    'yogacara-800': { label: 'Yogacara', moments_per_sec: 800 }
   };
 
   var YEAR_SECONDS   = 31556952; /* 365.2425 days */
