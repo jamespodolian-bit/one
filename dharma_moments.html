@@ -148,6 +148,25 @@
     cursor: pointer;
   }
 
+  select {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: #000;
+    color: var(--ink);
+    border: 0;
+    padding: 6px 8px;
+    font-family: "MS Sans Serif", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 12px;
+    color-scheme: dark;
+    outline: none;
+    cursor: pointer;
+    box-shadow:
+      inset  1px  1px 0 var(--lo),
+      inset -1px -1px 0 var(--hi),
+      inset  2px  2px 0 var(--lo-2),
+      inset -2px -2px 0 var(--hi-2);
+  }
+
   button {
     font: inherit;
     letter-spacing: 1px;
@@ -300,6 +319,20 @@
       </div>
     </fieldset>
 
+    <fieldset>
+      <legend>tradition</legend>
+      <div class="row">
+        <select id="tradition" aria-label="Buddhist tradition">
+          <option value="prajnaparamita-60">Prajnaparamita Sastra (60/snap)</option>
+          <option value="vibhasika-64">Vibhasika (64/snap)</option>
+          <option value="theravada-60">Theravada Abhidharma (60/sec)</option>
+          <option value="sautrantika-2">Sautrantika (2/moment)</option>
+          <option value="yogacara-800">Yogacara (800/sec)</option>
+          <option value="original-1b">Original (1 billion/sec)</option>
+        </select>
+      </div>
+    </fieldset>
+
     <div class="readout">
       <div class="label">dharma moments constructed</div>
       <div class="count" id="count" aria-hidden="true">—</div>
@@ -310,7 +343,7 @@
       <div class="pulse" aria-hidden="true"><i id="pulse-fill"></i></div>
       <div class="pulse-label">
         <span>one second</span>
-        <span>1,000,000,000 consciousness moments</span>
+        <span id="moment-rate">800 consciousness moments</span>
       </div>
     </div>
 
@@ -328,12 +361,26 @@
   'use strict';
 
   /* ------------------------------------------------------------------
-     1 second  = 1,000,000,000 dharma-kshanika  (yogacara approximation)
-     consciousness arising and ceasing in discrete moments
-     1 ms      = 1,000,000     consciousness moments
+     Different traditions estimate dharma-kshanika duration differently:
+     - Prajnaparamita: 60 moments per finger-snap (~75ms) = ~800/sec
+     - Vibhasika: 64 moments per finger-snap = ~853/sec
+     - Theravada: 60 moments per second
+     - Sautrantika: 2 sub-moments per moment
+     - Yogacara: ~800 moments per second
+     - Original estimate: 1 billion per second
      ------------------------------------------------------------------ */
-  var MOMENTS_PER_MS = 1e6;
+  var TRADITIONS = {
+    'prajnaparamita-60': { label: 'Prajnaparamita Sastra', moments_per_sec: 800 },
+    'vibhasika-64': { label: 'Vibhasika', moments_per_sec: 853 },
+    'theravada-60': { label: 'Theravada Abhidharma', moments_per_sec: 60 },
+    'sautrantika-2': { label: 'Sautrantika', moments_per_sec: 2 },
+    'yogacara-800': { label: 'Yogacara', moments_per_sec: 800 },
+    'original-1b': { label: 'Commentarial Expansion', moments_per_sec: 1e9 }
+  };
+
   var YEAR_SECONDS   = 31556952; /* 365.2425 days */
+  var MOMENTS_PER_MS = 0.8; /* default: 800/sec */
+  var CURRENT_TRADITION = 'yogacara-800';
 
   var $origin = document.getElementById('origin');
   var $now    = document.getElementById('now');
@@ -341,6 +388,7 @@
   var $human  = document.getElementById('human');
   var $fill   = document.getElementById('pulse-fill');
   var $left   = document.getElementById('status-left');
+  var $tradition = document.getElementById('tradition');
 
   var pad = function (n) { return String(n).padStart(2, '0'); };
 
@@ -369,6 +417,19 @@
   $now.addEventListener('click', function () {
     $origin.value = toLocalInput(new Date());
     readOrigin();
+  });
+
+  /* ---------- tradition selector ---------- */
+  var $momentRate = document.getElementById('moment-rate');
+  $tradition.addEventListener('change', function () {
+    CURRENT_TRADITION = $tradition.value;
+    var trad = TRADITIONS[CURRENT_TRADITION];
+    MOMENTS_PER_MS = trad.moments_per_sec / 1000;
+    $left.textContent = 'tradition: ' + trad.label;
+    $momentRate.textContent = (trad.moments_per_sec >= 1e6
+      ? (trad.moments_per_sec / 1e9).toFixed(1) + ' billion'
+      : trad.moments_per_sec.toLocaleString()) + ' consciousness moments';
+    lastDigits = '';
   });
 
   /* ---------- rendering ---------- */
@@ -442,6 +503,10 @@
 
   /* ---------- boot: default origin = the unix epoch ---------- */
   $origin.value = toLocalInput(new Date(0));
+  $tradition.value = CURRENT_TRADITION;
+  var trad = TRADITIONS[CURRENT_TRADITION];
+  $momentRate.textContent = trad.moments_per_sec.toLocaleString() + ' consciousness moments';
+  $left.textContent = 'tradition: ' + trad.label;
   readOrigin();
   requestAnimationFrame(tick);
 })();
